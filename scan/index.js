@@ -27,9 +27,8 @@ let actionCommon = {
         owner = tmp[0];
         repo = tmp[1];
 
-        octokit = new github.GitHub(token);
+        octokit = await new github.GitHub(token);
         context = github.context;
-
 
         try {
             let jReportFile = fs.readFileSync(`${workSpace}/${jsonReportName}`);
