@@ -1,6 +1,6 @@
 {
   "name": "@zaproxy/actions-common-scans",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "ZAP scan common code",
   "main": "index.js",
   "scripts": {
