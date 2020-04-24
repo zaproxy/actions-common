@@ -9,7 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zaproxy/actions-common.git"
+    "url": "git+https://github.com/zaproxy/actions-common.git",
+    "directory": "packages/scans"
   },
   "keywords": [
     "GitHub",
@@ -21,7 +22,6 @@
   "bugs": {
     "url": "https://github.com/zaproxy/actions-common/issues"
   },
-  "directory": "packages/scans",
   "dependencies": {
     "@actions/artifact": "^0.2.0",
     "@actions/core": "^1.1.1",
