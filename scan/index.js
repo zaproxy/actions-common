@@ -183,4 +183,7 @@ let actionCommon = {
 };
 
 
-module.exports = actionCommon;
+module.exports = {
+    main: actionCommon,
+    helper: actionHelper
+};
