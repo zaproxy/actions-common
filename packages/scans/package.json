@@ -21,6 +21,7 @@
   "bugs": {
     "url": "https://github.com/zaproxy/actions-common/issues"
   },
+  "directory": "packages/scans",
   "dependencies": {
     "@actions/artifact": "^0.2.0",
     "@actions/core": "^1.1.1",
