@@ -5,9 +5,7 @@
   "main": "src/index.js",
   "homepage": "https://github.com/zaproxy/actions-common/tree/master/packages/scans",
   "scripts": {
-    "lint": "eslint index.js",
-    "package": "ncc build index.js -o dist",
-    "test": "eslint index.js && jest"
+    "lint": "eslint src/index.js"
   },
   "repository": {
     "type": "git",
