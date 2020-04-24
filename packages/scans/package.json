@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "ZAP scan common code",
   "main": "src/index.js",
-  "homepage": "https://github.com/zaproxy/actions-common/blob/master/packages/scans/README.md",
+  "homepage": "https://github.com/zaproxy/actions-common/tree/master/packages/scans",
   "scripts": {
     "lint": "eslint index.js",
     "package": "ncc build index.js -o dist",
