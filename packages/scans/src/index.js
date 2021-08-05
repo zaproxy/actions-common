@@ -6,7 +6,7 @@ const _ = require('lodash');
 const actionHelper = require('./action-helper');
 
 let actionCommon = {
-    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName) => {
+    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true) => {
         let jsonReportName = 'report_json.json';
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';
@@ -44,9 +44,9 @@ let actionCommon = {
         });
 
         // If there is no existing open issue then create a new issue
-        if (issues.data.items.length === 0) {
+        if (issues.data.items.length === 0 && allowIssueWriting) {
             create_new_issue = true;
-        }else {
+        }else if (allowIssueWriting) {
             // Sometimes search API returns recently closed issue as an open issue
             for (let i = 0; i < issues.data.items.length; i++) {
                 let issue = issues.data.items[i];
@@ -152,7 +152,7 @@ let actionCommon = {
             });
             console.log(`Process completed successfully and a new issue #${newIssue.data.number} has been created for the ZAP Scan.`);
 
-        } else {
+        } else if (allowIssueWriting) {
 
             let siteClone = actionHelper.generateDifference(currentReport, previousReport);
             if (currentReport.updated) {
