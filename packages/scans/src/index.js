@@ -11,6 +11,11 @@ let actionCommon = {
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';
 
+        if (allowIssueWriting) {
+            actionHelper.uploadArtifacts(workSpace, mdReportName, jsonReportName, htmlReportName);
+            return;
+        }
+
         let openIssue;
         let currentReport;
         let previousRunnerID;
@@ -44,9 +49,9 @@ let actionCommon = {
         });
 
         // If there is no existing open issue then create a new issue
-        if (issues.data.items.length === 0 && allowIssueWriting) {
+        if (issues.data.items.length === 0) {
             create_new_issue = true;
-        }else if (allowIssueWriting) {
+        }else {
             // Sometimes search API returns recently closed issue as an open issue
             for (let i = 0; i < issues.data.items.length; i++) {
                 let issue = issues.data.items[i];
@@ -152,7 +157,7 @@ let actionCommon = {
             });
             console.log(`Process completed successfully and a new issue #${newIssue.data.number} has been created for the ZAP Scan.`);
 
-        } else if (allowIssueWriting) {
+        } else {
 
             let siteClone = actionHelper.generateDifference(currentReport, previousReport);
             if (currentReport.updated) {
