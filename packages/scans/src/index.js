@@ -11,7 +11,7 @@ let actionCommon = {
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';
 
-        if (allowIssueWriting) {
+        if (!allowIssueWriting) {
             actionHelper.uploadArtifacts(workSpace, mdReportName, jsonReportName, htmlReportName);
             return;
         }
