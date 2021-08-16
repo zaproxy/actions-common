@@ -6,10 +6,15 @@ const _ = require('lodash');
 const actionHelper = require('./action-helper');
 
 let actionCommon = {
-    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName) => {
+    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true) => {
         let jsonReportName = 'report_json.json';
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';
+
+        if (!allowIssueWriting) {
+            actionHelper.uploadArtifacts(workSpace, mdReportName, jsonReportName, htmlReportName);
+            return;
+        }
 
         let openIssue;
         let currentReport;
