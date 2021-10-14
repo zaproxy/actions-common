@@ -232,9 +232,8 @@ let actionHelper = {
         return previousReport;
     }),
 
-    uploadArtifacts: (async (rootDir, mdReport, jsonReport, htmlReport) => {
+    uploadArtifacts: (async (rootDir, mdReport, jsonReport, htmlReport, artifactName = 'zap_scan') => {
         const artifactClient = artifact.create();
-        const artifactName = 'zap_scan';
         const files = [
             `${rootDir}/${mdReport}`,
             `${rootDir}/${jsonReport}`,
