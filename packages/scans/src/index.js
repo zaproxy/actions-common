@@ -92,7 +92,7 @@ let actionCommon = {
                 }
 
                 if (previousRunnerID !== null) {
-                    previousReport = await actionHelper.readPreviousReport(octokit, owner, repo, workSpace, previousRunnerID);
+                    previousReport = await actionHelper.readPreviousReport(octokit, owner, repo, workSpace, previousRunnerID, artifactName);
                     if (previousReport === undefined) {
                         create_new_issue = true;
                     }

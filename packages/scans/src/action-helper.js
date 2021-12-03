@@ -183,7 +183,7 @@ let actionHelper = {
     }),
 
 
-    readPreviousReport: (async (octokit, owner, repo, workSpace, runnerID) => {
+    readPreviousReport: (async (octokit, owner, repo, workSpace, runnerID, artifactName = 'zap_scan') => {
         let previousReport;
         try{
             let artifactList = await octokit.actions.listWorkflowRunArtifacts({
@@ -196,7 +196,7 @@ let actionHelper = {
             let artifactID;
             if (artifacts.length !== 0) {
                 artifacts.forEach((a => {
-                    if (a['name'] === 'zap_scan') {
+                    if (a['name'] === artifactName) {
                         artifactID = a['id']
                     }
                 }));
@@ -212,12 +212,12 @@ let actionHelper = {
 
                 await new Promise(resolve =>
                     request(download.url)
-                        .pipe(fs.createWriteStream(`${workSpace}/zap_scan.zip`))
+                        .pipe(fs.createWriteStream(`${workSpace}/${artifactName}.zip`))
                         .on('finish', () => {
                             resolve();
                         }));
 
-                let zip = new AdmZip(`${workSpace}/zap_scan.zip`);
+                let zip = new AdmZip(`${workSpace}/${artifactName}.zip`);
                 let zipEntries = zip.getEntries();
 
                 await zipEntries.forEach(function (zipEntry) {
