@@ -4,9 +4,10 @@ const fs = require('fs');
 const github = require('@actions/github');
 const _ = require('lodash');
 const actionHelper = require('./action-helper');
+const { DEFAULT_OPTIONS } = require('./constants');
 
 let actionCommon = {
-    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true, artifactName = 'zap_scan') => {
+    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true, { artifactName } = DEFAULT_OPTIONS) => {
         let jsonReportName = 'report_json.json';
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';
@@ -92,7 +93,7 @@ let actionCommon = {
                 }
 
                 if (previousRunnerID !== null) {
-                    previousReport = await actionHelper.readPreviousReport(octokit, owner, repo, workSpace, previousRunnerID, artifactName);
+                    previousReport = await actionHelper.readPreviousReport(octokit, owner, repo, workSpace, previousRunnerID, { artifactName });
                     if (previousReport === undefined) {
                         create_new_issue = true;
                     }
@@ -182,7 +183,7 @@ let actionCommon = {
             }
         }
 
-        actionHelper.uploadArtifacts(workSpace, mdReportName, jsonReportName, htmlReportName, artifactName);
+        actionHelper.uploadArtifacts(workSpace, mdReportName, jsonReportName, htmlReportName, { artifactName });
 
     })
 };

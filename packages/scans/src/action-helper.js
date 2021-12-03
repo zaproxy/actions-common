@@ -4,6 +4,7 @@ const readline = require('readline');
 const AdmZip = require('adm-zip');
 const request = require('request');
 const artifact = require('@actions/artifact');
+const { DEFAULT_OPTIONS } = require('./constants');
 
 function createReadStreamSafe(filename, options) {
     return new Promise((resolve, reject) => {
@@ -183,7 +184,7 @@ let actionHelper = {
     }),
 
 
-    readPreviousReport: (async (octokit, owner, repo, workSpace, runnerID, artifactName = 'zap_scan') => {
+    readPreviousReport: (async (octokit, owner, repo, workSpace, runnerID, { artifactName } = DEFAULT_OPTIONS) => {
         let previousReport;
         try{
             let artifactList = await octokit.actions.listWorkflowRunArtifacts({
@@ -232,7 +233,7 @@ let actionHelper = {
         return previousReport;
     }),
 
-    uploadArtifacts: (async (rootDir, mdReport, jsonReport, htmlReport, artifactName = 'zap_scan') => {
+    uploadArtifacts: (async (rootDir, mdReport, jsonReport, htmlReport, { artifactName } = DEFAULT_OPTIONS) => {
         const artifactClient = artifact.create();
         const files = [
             `${rootDir}/${mdReport}`,
