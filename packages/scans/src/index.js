@@ -7,7 +7,7 @@ const actionHelper = require('./action-helper');
 const { DEFAULT_OPTIONS } = require('./constants');
 
 let actionCommon = {
-    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true, { artifactName } = DEFAULT_OPTIONS) => {
+    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, { allowIssueWriting, artifactName } = DEFAULT_OPTIONS) => {
         let jsonReportName = 'report_json.json';
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';

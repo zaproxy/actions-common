@@ -1,5 +1,6 @@
 module.exports = {
     DEFAULT_OPTIONS: {
-        artifactName: 'zap_scan'
+      allowIssueWriting: true,
+      artifactName: 'zap_scan',
     }
 }
