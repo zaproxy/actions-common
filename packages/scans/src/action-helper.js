@@ -14,10 +14,6 @@ function createReadStreamSafe(filename, options) {
     });
 }
 
-function hasOwnProperty(obj, key) {
-    return Object.prototype.hasOwnProperty.call(obj, key);
-}
-
 let actionHelper = {
 
     getRunnerID: ((body) => {
@@ -60,7 +56,7 @@ let actionHelper = {
 
         sites.forEach((site => {
             msg = msg + `${BULLET} Site: [${site["@name"]}](${site["@name"]}) ${NXT_LINE}`;
-            if (hasOwnProperty(site, 'alerts')) {
+            if (site?.alerts) {
                 if (site.alerts.length !== 0) {
                     msg = `${msg} ${TAB} **New Alerts** ${NXT_LINE}`;
                     site.alerts.forEach((alert) => {
@@ -79,7 +75,7 @@ let actionHelper = {
                 }
             }
 
-            if (hasOwnProperty(site, 'removedAlerts')) {
+            if (site?.removedAlerts) {
                 if (site.removedAlerts.length !== 0) {
                     msg = `${msg} ${TAB} **Resolved Alerts** ${NXT_LINE}`;
                     site.removedAlerts.forEach((alert) => {
@@ -89,7 +85,7 @@ let actionHelper = {
                 }
             }
 
-            if (hasOwnProperty(site, 'ignoredAlerts')) {
+            if (site?.ignoredAlerts) {
                 if (site.ignoredAlerts.length !== 0) {
                     msg = `${msg} ${TAB} **Ignored Alerts** ${NXT_LINE}`;
                     site.ignoredAlerts.forEach((alert) => {
@@ -128,9 +124,9 @@ let actionHelper = {
                 let removedAlerts = _.differenceBy(previousAlerts, currentAlerts, 'pluginid');
 
                 let ignoredAlerts = [];
-                if (hasOwnProperty(newReportSite, 'ignoredAlerts') && hasOwnProperty(previousSite[0], 'ignoredAlerts')) {
+                if (newReportSite?.ignoredAlerts && previousSite[0]?.ignoredAlerts) {
                     ignoredAlerts = _.differenceBy(newReportSite['ignoredAlerts'], previousSite[0]['ignoredAlerts'], 'pluginid');
-                }else if(hasOwnProperty(newReportSite, 'ignoredAlerts')){
+                }else if(newReportSite?.ignoredAlerts){
                     ignoredAlerts = newReportSite['ignoredAlerts']
                 }
 
@@ -161,14 +157,14 @@ let actionHelper = {
 
     checkIfAlertsExists: ((jsonReport) => {
         return jsonReport.site.some((s) => {
-            return (hasOwnProperty(s, 'alerts') && s.alerts.length !== 0);
+            return (s?.alerts && s.alerts.length !== 0);
         });
     }),
 
 
     filterReport: (async (jsonReport, plugins) => {
         jsonReport.site.forEach((s) => {
-            if (hasOwnProperty(s, 'alerts') && s.alerts.length !== 0) {
+            if (s?.alerts && s.alerts.length !== 0) {
                 console.log(`starting to filter the alerts for site: ${s['@name']}`);
                 let newAlerts = s.alerts.filter(function (e) {
                     return !plugins.includes(e.pluginid)
