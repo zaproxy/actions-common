@@ -1,8 +1,5 @@
-const core = require('@actions/core');
-const exec = require('@actions/exec');
 const fs = require('fs');
 const github = require('@actions/github');
-const _ = require('lodash');
 const actionHelper = require('./action-helper');
 
 let actionCommon = {
@@ -24,7 +21,6 @@ let actionCommon = {
 
         // Forward variable declarations
         let octokit;
-        let context;
         let owner;
         let repo;
 
@@ -33,7 +29,6 @@ let actionCommon = {
         repo = tmp[1];
 
         octokit = await new github.GitHub(token);
-        context = github.context;
 
         try {
             let jReportFile = fs.readFileSync(`${workSpace}/${jsonReportName}`);
