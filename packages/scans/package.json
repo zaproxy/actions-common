@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "homepage": "https://github.com/zaproxy/actions-common/tree/master/packages/scans",
   "scripts": {
-    "lint": "eslint src/index.js"
+    "lint": "eslint src/index.js",
+    "format": "prettier package.json **.js -w"
   },
   "repository": {
     "type": "git",
