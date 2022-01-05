@@ -32,7 +32,7 @@ let actionCommon = {
         owner = tmp[0];
         repo = tmp[1];
 
-        octokit = await new github.GitHub(token);
+        octokit = await new github.getOctokit(token).rest;
         context = github.context;
 
         try {
@@ -144,7 +144,7 @@ let actionCommon = {
         }
 
         let runnerInfo = `RunnerID:${currentRunnerID}`;
-        let runnerLink = `View the [following link](https://github.com/${owner}/${repo}/actions/runs/${currentRunnerID})` +
+        let runnerLink = `View the [following link](${context.serverUrl}/${owner}/${repo}/actions/runs/${currentRunnerID})` +
             ` to download the report.`;
         if (create_new_issue) {
 
