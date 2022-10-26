@@ -32,7 +32,9 @@ let actionCommon = {
         owner = tmp[0];
         repo = tmp[1];
 
-        octokit = await new github.getOctokit(token).rest;
+        octokit = await new github.getOctokit(token, {
+            baseUrl: process.env.GITHUB_API_URL
+	    }).rest;
         context = github.context;
 
         try {
