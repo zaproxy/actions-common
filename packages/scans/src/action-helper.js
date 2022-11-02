@@ -60,7 +60,7 @@ let actionHelper = {
                 if (site.alerts.length !== 0) {
                     msg = `${msg} ${TAB} **New Alerts** ${NXT_LINE}`;
                     site.alerts.forEach((alert) => {
-                        msg = msg + TAB + `${BULLET} **${alert.name}** [${alert.pluginid}] total: ${alert.instances.length}:  ${NXT_LINE}`
+                        msg = msg + TAB + `${BULLET} **${alert.name}** [[${alert.pluginid}]](https://www.zaproxy.org/docs/alerts/${alert.pluginid}/) total: ${alert.instances.length}:  ${NXT_LINE}`
 
                         for (let i = 0; i < alert['instances'].length; i++) {
                             if (i >= instanceCount) {
