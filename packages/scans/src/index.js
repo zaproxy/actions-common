@@ -1,8 +1,5 @@
-const core = require('@actions/core');
-const exec = require('@actions/exec');
 const fs = require('fs');
 const github = require('@actions/github');
-const _ = require('lodash');
 const actionHelper = require('./action-helper');
 
 let actionCommon = {
