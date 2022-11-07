@@ -21,7 +21,7 @@ const actionCommon = {
     const htmlReportName = "report_html.html";
 
     if (!allowIssueWriting) {
-      actionHelper.uploadArtifacts(
+      await actionHelper.uploadArtifacts(
         workSpace,
         mdReportName,
         jsonReportName,
@@ -248,7 +248,7 @@ const actionCommon = {
       }
     }
 
-    actionHelper.uploadArtifacts(
+    await actionHelper.uploadArtifacts(
       workSpace,
       mdReportName,
       jsonReportName,
