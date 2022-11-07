@@ -1,9 +1,11 @@
 import fs from 'fs';
 import github from '@actions/github';
 import actionHelper from './action-helper';
+import type {Octokit} from '@octokit/rest';
+import {Report} from './models';
 
 let actionCommon = {
-    processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true, artifactName = 'zap_scan') => {
+    processReport: (async (token: string, workSpace: string, plugins: string[], currentRunnerID: string, issueTitle: string, repoName: string, allowIssueWriting = true, artifactName = 'zap_scan') => {
         let jsonReportName = 'report_json.json';
         let mdReportName = 'report_md.md';
         let htmlReportName = 'report_html.html';
@@ -13,15 +15,15 @@ let actionCommon = {
             return;
         }
 
-        let openIssue;
-        let currentReport;
+        let openIssue: Octokit.SearchIssuesAndPullRequestsResponseItemsItem | undefined;
+        let currentReport: Report | undefined;
         let previousRunnerID;
-        let previousReport = {};
+        let previousReport: Partial<Report> | undefined = {};
         let create_new_issue = false;
 
         // Forward variable declarations
         let octokit;
-        let context;
+        let context: typeof github.context | undefined;
         let owner;
         let repo;
 
@@ -101,7 +103,7 @@ let actionCommon = {
 
         if (plugins.length !== 0) {
             console.log(`${plugins.length} plugins will be ignored according to the rules configuration`);
-            currentReport = await actionHelper.filterReport(currentReport, plugins);
+            currentReport = await actionHelper.filterReport(currentReport!, plugins);
 
             // Update the newly filtered report
             fs.unlinkSync(`${workSpace}/${jsonReportName}`);
@@ -109,7 +111,7 @@ let actionCommon = {
             console.log('The current report is updated with the ignored alerts!')
         }
 
-        let newAlertExits = actionHelper.checkIfAlertsExists(currentReport);
+        let newAlertExits = actionHelper.checkIfAlertsExists(currentReport!);
 
         console.log(`Alerts present in the current report: ${newAlertExits}`);
 
@@ -147,7 +149,7 @@ let actionCommon = {
             ` to download the report.`;
         if (create_new_issue) {
 
-            let msg = actionHelper.createMessage(currentReport['site'], runnerInfo, runnerLink);
+            let msg = actionHelper.createMessage(currentReport!['site'], runnerInfo, runnerLink);
             const newIssue = await octokit.issues.create({
                 owner: owner,
                 repo: repo,
@@ -158,22 +160,22 @@ let actionCommon = {
 
         } else {
 
-            let siteClone = actionHelper.generateDifference(currentReport, previousReport);
-            if (currentReport.updated) {
+            let siteClone = actionHelper.generateDifference(currentReport!, previousReport as Report);
+            if (currentReport!.updated) {
                 console.log('The current report has changes compared to the previous report');
                 try{
                     let msg = actionHelper.createMessage(siteClone, runnerInfo, runnerLink);
                     await octokit.issues.createComment({
                         owner: owner,
                         repo: repo,
-                        issue_number: openIssue['number'],
+                        issue_number: openIssue!['number'],
                         body: msg
                     });
 
-                    console.log(`The issue #${openIssue.number} has been updated with the latest ZAP scan results!`);
+                    console.log(`The issue #${openIssue!.number} has been updated with the latest ZAP scan results!`);
                     console.log('ZAP Scan process completed successfully!');
                 }catch (err) {
-                    console.log(`Error occurred while updating the issue #${openIssue.number} with the latest ZAP scan: ${err}`)
+                    console.log(`Error occurred while updating the issue #${openIssue!.number} with the latest ZAP scan: ${err}`)
                 }
 
             } else {

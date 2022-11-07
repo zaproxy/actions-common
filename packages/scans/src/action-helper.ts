@@ -1,11 +1,19 @@
-import fs from 'fs';
+import fs, {type ReadStream} from 'fs';
 import _ from 'lodash';
 import readline from 'readline';
 import AdmZip from 'adm-zip';
 import request from 'request';
+import type {Octokit} from '@octokit/rest';
 import artifact from '@actions/artifact';
+import {
+    DifferenceSite,
+    FilteredReport,
+    FilteredSite,
+    Report,
+    Site,
+} from './models';
 
-function createReadStreamSafe(filename: string) {
+function createReadStreamSafe(filename: string): Promise<ReadStream> {
     return new Promise((resolve, reject) => {
         const fileStream = fs.createReadStream(filename);
         fileStream.on('error', reject).on('open', () => {
@@ -16,7 +24,7 @@ function createReadStreamSafe(filename: string) {
 
 let actionHelper = {
 
-    getRunnerID: ((body) => {
+    getRunnerID: ((body: string): string | null => {
         let results = body.match('RunnerID:\\d+');
         if (results !== null && results.length !== 0) {
             return results[0].split(':')[1];
@@ -24,7 +32,7 @@ let actionHelper = {
         return null;
     }),
 
-    processLineByLine: (async (tsvFile) => {
+    processLineByLine: (async (tsvFile: string) => {
         let plugins = [];
         try {
             const fileStream = await createReadStreamSafe(tsvFile);
@@ -47,7 +55,7 @@ let actionHelper = {
         return plugins;
     }),
 
-    createMessage: ((sites, runnerID, runnerLink) => {
+    createMessage: ((sites: FilteredSite[] | DifferenceSite[], runnerID: string, runnerLink: string) => {
         const NXT_LINE = '\n';
         const TAB = "\t";
         const BULLET = "-";
@@ -57,9 +65,9 @@ let actionHelper = {
         sites.forEach((site => {
             msg = msg + `${BULLET} Site: [${site["@name"]}](${site["@name"]}) ${NXT_LINE}`;
             if (site.hasOwnProperty('alerts')) {
-                if (site.alerts.length !== 0) {
+                if (site.alerts!.length !== 0) {
                     msg = `${msg} ${TAB} **New Alerts** ${NXT_LINE}`;
-                    site.alerts.forEach((alert) => {
+                    site.alerts!.forEach((alert) => {
                         msg = msg + TAB + `${BULLET} **${alert.name}** [${alert.pluginid}] total: ${alert.instances.length}:  ${NXT_LINE}`
 
                         for (let i = 0; i < alert['instances'].length; i++) {
@@ -75,7 +83,7 @@ let actionHelper = {
                 }
             }
 
-            if (site.hasOwnProperty('removedAlerts')) {
+            if ('removedAlerts' in site) {
                 if (site.removedAlerts.length !== 0) {
                     msg = `${msg} ${TAB} **Resolved Alerts** ${NXT_LINE}`;
                     site.removedAlerts.forEach((alert) => {
@@ -104,9 +112,9 @@ let actionHelper = {
         return msg
     }),
 
-    generateDifference: ((newReport, oldReport) => {
+    generateDifference: ((newReport: Report, oldReport: Report) => {
         newReport.updated = false;
-        let siteClone = [];
+        let siteClone: Site[] = [];
         newReport.site.forEach((newReportSite) => {
             // Check if the new report site already exists in the previous report
             let previousSite = _.filter(oldReport.site, s => s['@name'] === newReportSite['@name']);
@@ -120,8 +128,8 @@ let actionHelper = {
                 let currentAlerts = newReportSite.alerts;
                 let previousAlerts = previousSite[0].alerts;
 
-                let newAlerts = _.differenceBy(currentAlerts, previousAlerts, 'pluginid');
-                let removedAlerts = _.differenceBy(previousAlerts, currentAlerts, 'pluginid');
+                let newAlerts = _.differenceBy(currentAlerts, previousAlerts!, 'pluginid');
+                let removedAlerts = _.differenceBy(previousAlerts, currentAlerts!, 'pluginid');
 
                 let ignoredAlerts = [];
                 if (newReportSite.hasOwnProperty('ignoredAlerts') && previousSite[0].hasOwnProperty('ignoredAlerts')) {
@@ -145,7 +153,7 @@ let actionHelper = {
         return siteClone;
     }),
 
-    readMDFile: (async (reportName) => {
+    readMDFile: (async (reportName: string) => {
         let res = '';
         try {
             res = fs.readFileSync(reportName, {encoding: 'base64'});
@@ -155,41 +163,41 @@ let actionHelper = {
         return res;
     }),
 
-    checkIfAlertsExists: ((jsonReport) => {
+    checkIfAlertsExists: ((jsonReport: Report) => {
         return jsonReport.site.some((s) => {
-            return (s.hasOwnProperty('alerts') && s.alerts.length !== 0);
+            return (s.hasOwnProperty('alerts') && s.alerts!.length !== 0);
         });
     }),
 
 
-    filterReport: (async (jsonReport, plugins) => {
+    filterReport: (async (jsonReport: Report, plugins: string[]): Promise<FilteredReport> => {
         jsonReport.site.forEach((s) => {
-            if (s.hasOwnProperty('alerts') && s.alerts.length !== 0) {
+            if (s.hasOwnProperty('alerts') && s.alerts!.length !== 0) {
                 console.log(`starting to filter the alerts for site: ${s['@name']}`);
-                let newAlerts = s.alerts.filter(function (e) {
+                let newAlerts = s.alerts!.filter(function (e) {
                     return !plugins.includes(e.pluginid)
                 });
-                let removedAlerts = s.alerts.filter(function (e) {
+                let removedAlerts = s.alerts!.filter(function (e) {
                     return plugins.includes(e.pluginid)
                 });
                 s.alerts = newAlerts;
-                s.ignoredAlerts = removedAlerts;
+                (s as FilteredSite).ignoredAlerts = removedAlerts;
 
                 console.log(`#${newAlerts.length} alerts have been identified` +
                     ` and #${removedAlerts.length} alerts have been ignored for the site.`);
             }
         });
-        return jsonReport;
+        return jsonReport as FilteredReport;
     }),
 
 
-    readPreviousReport: (async (octokit, owner, repo, workSpace, runnerID) => {
+        readPreviousReport: (async (octokit: Octokit, owner: string, repo: string, workSpace: string, runnerID: string) => {
         let previousReport;
         try{
             let artifactList = await octokit.actions.listWorkflowRunArtifacts({
                 owner: owner,
                 repo: repo,
-                run_id: runnerID
+                run_id: runnerID as unknown as number
             });
 
             let artifacts = artifactList.data.artifacts;
@@ -210,7 +218,7 @@ let actionHelper = {
                     archive_format: 'zip'
                 });
 
-                await new Promise(resolve =>
+                await new Promise<void>(resolve =>
                     request(download.url)
                         .pipe(fs.createWriteStream(`${workSpace}/zap_scan.zip`))
                         .on('finish', () => {
@@ -232,7 +240,7 @@ let actionHelper = {
         return previousReport;
     }),
 
-    uploadArtifacts: (async (rootDir, mdReport, jsonReport, htmlReport, artifactName = 'zap_scan') => {
+    uploadArtifacts: (async (rootDir: string, mdReport: string, jsonReport: string, htmlReport: string, artifactName = 'zap_scan') => {
         const artifactClient = artifact.create();
         const files = [
             `${rootDir}/${mdReport}`,
