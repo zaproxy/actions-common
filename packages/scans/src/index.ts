@@ -1,6 +1,6 @@
-const fs = require('fs');
-const github = require('@actions/github');
-const actionHelper = require('./action-helper');
+import fs from 'fs';
+import github from '@actions/github';
+import actionHelper from './action-helper';
 
 let actionCommon = {
     processReport: (async (token, workSpace, plugins, currentRunnerID, issueTitle, repoName, allowIssueWriting = true, artifactName = 'zap_scan') => {

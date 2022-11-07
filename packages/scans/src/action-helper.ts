@@ -1,9 +1,9 @@
-const fs = require('fs');
-const _ = require('lodash');
-const readline = require('readline');
-const AdmZip = require('adm-zip');
-const request = require('request');
-const artifact = require('@actions/artifact');
+import fs from 'fs';
+import _ from 'lodash';
+import readline from 'readline';
+import AdmZip from 'adm-zip';
+import request from 'request';
+import artifact from '@actions/artifact';
 
 function createReadStreamSafe(filename, options) {
     return new Promise((resolve, reject) => {
@@ -249,4 +249,4 @@ let actionHelper = {
 
 };
 
-module.exports = actionHelper;
+export default actionHelper
