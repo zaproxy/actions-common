@@ -1,10 +1,9 @@
 import { main } from "./index";
 import nock from "nock";
-import { readFileSync } from "fs";
+import fs from "fs";
 import { ReportFixture } from "./models/ReportFixture";
 import { mockSearchIssues } from "./testHelpers/githubApiMocks/mockSearchIssues";
 import { mockCreateIssue } from "./testHelpers/githubApiMocks/mockCreateIssue";
-import Mock = jest.Mock;
 
 jest.mock("@actions/artifact", () => ({
   create: () => ({
@@ -12,19 +11,17 @@ jest.mock("@actions/artifact", () => ({
   }),
 }));
 
-jest.mock("fs", () => ({
-  readFileSync: jest.fn(),
-}));
-
 describe("processReport", () => {
   describe("with a report file in place", () => {
+    const originalReadFileSync = fs.readFileSync;
+
     beforeEach(() => {
       const report = new ReportFixture();
-      (readFileSync as Mock).mockReturnValue(JSON.stringify(report));
+      fs.readFileSync = jest.fn().mockReturnValue(JSON.stringify(report));
     });
 
     afterAll(() => {
-      (readFileSync as Mock).mockReset();
+      fs.readFileSync = originalReadFileSync;
     });
 
     describe("without an open issue", () => {
