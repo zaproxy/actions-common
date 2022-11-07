@@ -5,9 +5,9 @@ import AdmZip from 'adm-zip';
 import request from 'request';
 import artifact from '@actions/artifact';
 
-function createReadStreamSafe(filename, options) {
+function createReadStreamSafe(filename: string) {
     return new Promise((resolve, reject) => {
-        const fileStream = fs.createReadStream(filename, options);
+        const fileStream = fs.createReadStream(filename);
         fileStream.on('error', reject).on('open', () => {
             resolve(fileStream);
         });
