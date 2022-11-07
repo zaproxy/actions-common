@@ -1,5 +1,5 @@
 import fs from "fs";
-import github from "@actions/github";
+import { getOctokit, context } from "@actions/github";
 import actionHelper from "./action-helper";
 import { Report } from "./models";
 import { components } from "@octokit/openapi-types";
@@ -41,10 +41,9 @@ const actionCommon = {
     const owner = tmp[0];
     const repo = tmp[1];
 
-    const octokit = github.getOctokit(token, {
+    const octokit = getOctokit(token, {
       baseUrl: process.env.GITHUB_API_URL,
     }).rest;
-    const context = github.context;
 
     try {
       const jReportFile = fs.readFileSync(`${workSpace}/${jsonReportName}`);
@@ -255,7 +254,5 @@ const actionCommon = {
   },
 };
 
-module.exports = {
-  main: actionCommon,
-  helper: actionHelper,
-};
+export const main = actionCommon;
+export const helper = actionHelper;

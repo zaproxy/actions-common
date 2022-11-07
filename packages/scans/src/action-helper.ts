@@ -3,7 +3,7 @@ import _ from "lodash";
 import readline from "readline";
 import AdmZip from "adm-zip";
 import request from "request";
-import artifact from "@actions/artifact";
+import { create } from "@actions/artifact";
 import {
   Alert,
   DifferenceSite,
@@ -309,7 +309,7 @@ const actionHelper = {
     htmlReport: string,
     artifactName = "zap_scan"
   ) => {
-    const artifactClient = artifact.create();
+    const artifactClient = create();
     const files = [
       `${rootDir}/${mdReport}`,
       `${rootDir}/${jsonReport}`,
