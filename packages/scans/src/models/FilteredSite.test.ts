@@ -1,4 +1,4 @@
-import { isFilteredSite } from "./models";
+import { isFilteredSite } from "./FilteredSite";
 
 describe("FilteredSite", () => {
   describe("isFilteredSite", () => {

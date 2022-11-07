@@ -4,17 +4,13 @@ import readline from "readline";
 import AdmZip from "adm-zip";
 import request from "request";
 import { create } from "@actions/artifact";
-import {
-  Alert,
-  DifferenceSite,
-  FilteredReport,
-  FilteredSite,
-  isDifferenceSite,
-  isFilteredSite,
-  Report,
-  Site,
-} from "./models";
 import type { GitHub } from "@actions/github/lib/utils";
+import { Report } from "./models/Report";
+import { Site } from "./models/Site";
+import { FilteredSite, isFilteredSite } from "./models/FilteredSite";
+import { DifferenceSite, isDifferenceSite } from "./models/DifferenceSite";
+import { FilteredReport } from "./models/FilteredReport";
+import { Alert } from "./models/Alert";
 
 function createReadStreamSafe(filename: string): Promise<ReadStream> {
   return new Promise((resolve, reject) => {

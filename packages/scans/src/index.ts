@@ -1,8 +1,8 @@
 import fs from "fs";
 import { getOctokit, context } from "@actions/github";
 import actionHelper from "./action-helper";
-import { Report } from "./models";
 import { components } from "@octokit/openapi-types";
+import { Report } from "./models/Report";
 
 const actionCommon = {
   processReport: async (
