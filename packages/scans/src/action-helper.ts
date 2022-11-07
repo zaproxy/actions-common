@@ -5,9 +5,12 @@ import AdmZip from 'adm-zip';
 import request from 'request';
 import artifact from '@actions/artifact';
 import {
+    Alert,
     DifferenceSite,
     FilteredReport,
     FilteredSite,
+    isDifferenceSite,
+    isFilteredSite,
     Report,
     Site,
 } from './models';
@@ -55,7 +58,7 @@ let actionHelper = {
         return plugins;
     }),
 
-    createMessage: ((sites: FilteredSite[] | DifferenceSite[], runnerID: string, runnerLink: string) => {
+    createMessage: ((sites: Site[] | FilteredSite[] | DifferenceSite[], runnerID: string, runnerLink: string) => {
         const NXT_LINE = '\n';
         const TAB = "\t";
         const BULLET = "-";
@@ -83,7 +86,7 @@ let actionHelper = {
                 }
             }
 
-            if ('removedAlerts' in site) {
+            if (isDifferenceSite(site)) {
                 if (site.removedAlerts.length !== 0) {
                     msg = `${msg} ${TAB} **Resolved Alerts** ${NXT_LINE}`;
                     site.removedAlerts.forEach((alert) => {
@@ -93,7 +96,7 @@ let actionHelper = {
                 }
             }
 
-            if (site.hasOwnProperty('ignoredAlerts')) {
+            if (isFilteredSite(site)) {
                 if (site.ignoredAlerts.length !== 0) {
                     msg = `${msg} ${TAB} **Ignored Alerts** ${NXT_LINE}`;
                     site.ignoredAlerts.forEach((alert) => {
@@ -112,7 +115,7 @@ let actionHelper = {
         return msg
     }),
 
-    generateDifference: ((newReport: Report, oldReport: Report) => {
+    generateDifference: ((newReport: Report | FilteredReport, oldReport: Report | FilteredReport): Site[] => {
         newReport.updated = false;
         let siteClone: Site[] = [];
         newReport.site.forEach((newReportSite) => {
@@ -131,10 +134,10 @@ let actionHelper = {
                 let newAlerts = _.differenceBy(currentAlerts, previousAlerts!, 'pluginid');
                 let removedAlerts = _.differenceBy(previousAlerts, currentAlerts!, 'pluginid');
 
-                let ignoredAlerts = [];
-                if (newReportSite.hasOwnProperty('ignoredAlerts') && previousSite[0].hasOwnProperty('ignoredAlerts')) {
+                let ignoredAlerts: Alert[] = [];
+                if (isFilteredSite(newReportSite) && isFilteredSite(previousSite[0])) {
                     ignoredAlerts = _.differenceBy(newReportSite['ignoredAlerts'], previousSite[0]['ignoredAlerts'], 'pluginid');
-                }else if(newReportSite.hasOwnProperty('ignoredAlerts')){
+                }else if(isFilteredSite(newReportSite)){
                     ignoredAlerts = newReportSite['ignoredAlerts']
                 }
 

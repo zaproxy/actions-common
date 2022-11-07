@@ -9,11 +9,20 @@ export interface Site {
 }
 
 export interface FilteredSite extends Site {
-  ignoredAlerts?: Alert[]
+  ignoredAlerts: Alert[]
+}
+
+export function isFilteredSite (site: Site): site is FilteredSite {
+  return Array.isArray((site as FilteredSite).ignoredAlerts)
 }
 
 export interface DifferenceSite extends FilteredSite {
-  removedAlerts?: Alert[]
+  /** Alerts that are not in the current report but were in the last one */
+  removedAlerts: Alert[]
+}
+
+export function isDifferenceSite (site: Site): site is DifferenceSite {
+  return Array.isArray((site as DifferenceSite).removedAlerts)
 }
 
 export interface Alert {
