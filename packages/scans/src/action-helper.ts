@@ -3,7 +3,6 @@ import _ from 'lodash';
 import readline from 'readline';
 import AdmZip from 'adm-zip';
 import request from 'request';
-import type {Octokit} from '@octokit/rest';
 import artifact from '@actions/artifact';
 import {
     DifferenceSite,
@@ -12,6 +11,7 @@ import {
     Report,
     Site,
 } from './models';
+import type {GitHub} from '@actions/github/lib/utils';
 
 function createReadStreamSafe(filename: string): Promise<ReadStream> {
     return new Promise((resolve, reject) => {
@@ -191,7 +191,7 @@ let actionHelper = {
     }),
 
 
-        readPreviousReport: (async (octokit: Octokit, owner: string, repo: string, workSpace: string, runnerID: string) => {
+        readPreviousReport: (async (octokit: InstanceType<typeof GitHub>['rest'], owner: string, repo: string, workSpace: string, runnerID: string) => {
         let previousReport;
         try{
             let artifactList = await octokit.actions.listWorkflowRunArtifacts({

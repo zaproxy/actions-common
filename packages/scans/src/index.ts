@@ -1,8 +1,9 @@
 import fs from 'fs';
 import github from '@actions/github';
 import actionHelper from './action-helper';
-import type {Octokit} from '@octokit/rest';
 import {Report} from './models';
+import {components} from '@octokit/openapi-types';
+import type {GitHub} from '@actions/github/lib/utils';
 
 let actionCommon = {
     processReport: (async (token: string, workSpace: string, plugins: string[], currentRunnerID: string, issueTitle: string, repoName: string, allowIssueWriting = true, artifactName = 'zap_scan') => {
@@ -15,14 +16,14 @@ let actionCommon = {
             return;
         }
 
-        let openIssue: Octokit.SearchIssuesAndPullRequestsResponseItemsItem | undefined;
+        let openIssue: components["schemas"]["issue-search-result-item"] | undefined;
         let currentReport: Report | undefined;
         let previousRunnerID;
         let previousReport: Partial<Report> | undefined = {};
         let create_new_issue = false;
 
         // Forward variable declarations
-        let octokit;
+        let octokit: InstanceType<typeof GitHub>['rest'];
         let context: typeof github.context | undefined;
         let owner;
         let repo;
@@ -31,7 +32,7 @@ let actionCommon = {
         owner = tmp[0];
         repo = tmp[1];
 
-        octokit = await new github.getOctokit(token, {
+        octokit = await github.getOctokit(token, {
             baseUrl: process.env.GITHUB_API_URL
 	    }).rest;
         context = github.context;
@@ -56,7 +57,7 @@ let actionCommon = {
             // Sometimes search API returns recently closed issue as an open issue
             for (let i = 0; i < issues.data.items.length; i++) {
                 let issue = issues.data.items[i];
-                if(issue['state'] === 'open' && issue['user']['login'] === 'github-actions[bot]'){
+                if(issue['state'] === 'open' && issue['user']!['login'] === 'github-actions[bot]'){
                     openIssue = issue;
                     break
                 }
@@ -68,7 +69,7 @@ let actionCommon = {
                 console.log(`Ongoing open issue has been identified #${openIssue['number']}`);
                 // If there is no comments then read the body
                 if (openIssue['comments'] === 0) {
-                    previousRunnerID = actionHelper.getRunnerID(openIssue['body']);
+                    previousRunnerID = actionHelper.getRunnerID(openIssue['body']!);
                 }else {
                     let comments = await octokit.issues.listComments({
                         owner: owner,
@@ -79,16 +80,16 @@ let actionCommon = {
                     let lastBotComment;
                     let lastCommentIndex = comments['data'].length - 1;
                     for (let i = lastCommentIndex; i >= 0; i--) {
-                        if (comments['data'][i]['user']['login'] === 'github-actions[bot]') {
+                        if (comments['data'][i]['user']!['login'] === 'github-actions[bot]') {
                             lastBotComment = comments['data'][i];
                             break;
                         }
                     }
 
                     if (lastBotComment === undefined) {
-                        previousRunnerID = actionHelper.getRunnerID(openIssue['body']);
+                        previousRunnerID = actionHelper.getRunnerID(openIssue['body']!);
                     }else {
-                        previousRunnerID = actionHelper.getRunnerID(lastBotComment['body']);
+                        previousRunnerID = actionHelper.getRunnerID(lastBotComment['body']!);
                     }
                 }
 
