@@ -4,8 +4,9 @@
   "description": "ZAP scan common code",
   "homepage": "https://github.com/zaproxy/actions-common/tree/master/packages/scans",
   "license": "Apache-2.0",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "lint": "eslint src/index.js"
   },
   "repository": {
@@ -31,6 +32,8 @@
     "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "eslint": "^8.9.0"
+    "@tsconfig/node16": "^1.0.3",
+    "eslint": "^8.9.0",
+    "typescript": "^4.8.4"
   }
 }
