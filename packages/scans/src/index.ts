@@ -3,7 +3,6 @@ import github from "@actions/github";
 import actionHelper from "./action-helper";
 import { Report } from "./models";
 import { components } from "@octokit/openapi-types";
-import type { GitHub } from "@actions/github/lib/utils";
 
 const actionCommon = {
   processReport: async (
