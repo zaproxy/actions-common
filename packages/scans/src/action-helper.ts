@@ -75,7 +75,7 @@ const actionHelper = {
       msg =
         msg +
         `${BULLET} Site: [${site["@name"]}](${site["@name"]}) ${NXT_LINE}`;
-      if (site.hasOwnProperty("alerts")) {
+      if ("alerts" in site) {
         if (site.alerts!.length !== 0) {
           msg = `${msg} ${TAB} **New Alerts** ${NXT_LINE}`;
           site.alerts!.forEach((alert) => {
@@ -154,7 +154,7 @@ const actionHelper = {
         siteClone.push(newReportSite);
       } else {
         // deep clone the variable for further processing
-        const newSite = JSON.parse(JSON.stringify(newReportSite));
+        const newSite = _.clone(newReportSite);
         const currentAlerts = newReportSite.alerts;
         const previousAlerts = previousSite[0].alerts;
 
@@ -187,8 +187,8 @@ const actionHelper = {
         );
 
         newSite.alerts = newAlerts;
-        newSite.removedAlerts = removedAlerts;
-        newSite.ignoredAlerts = ignoredAlerts;
+        (newSite as DifferenceSite).removedAlerts = removedAlerts;
+        (newSite as DifferenceSite).ignoredAlerts = ignoredAlerts;
         siteClone.push(newSite);
 
         if (
@@ -215,7 +215,7 @@ const actionHelper = {
 
   checkIfAlertsExists: (jsonReport: Report) => {
     return jsonReport.site.some((s) => {
-      return s.hasOwnProperty("alerts") && s.alerts!.length !== 0;
+      return "alerts" in s && s.alerts!.length !== 0;
     });
   },
 
@@ -224,7 +224,7 @@ const actionHelper = {
     plugins: string[]
   ): Promise<FilteredReport> => {
     jsonReport.site.forEach((s) => {
-      if (s.hasOwnProperty("alerts") && s.alerts!.length !== 0) {
+      if ("alerts" in s && s.alerts!.length !== 0) {
         console.log(`starting to filter the alerts for site: ${s["@name"]}`);
         const newAlerts = s.alerts!.filter(function (e) {
           return !plugins.includes(e.pluginid);
@@ -288,9 +288,11 @@ const actionHelper = {
         const zip = new AdmZip(`${workSpace}/zap_scan.zip`);
         const zipEntries = zip.getEntries();
 
-        await zipEntries.forEach(function (zipEntry) {
+        zipEntries.forEach(function (zipEntry) {
           if (zipEntry.entryName === "report_json.json") {
-            previousReport = JSON.parse(zipEntry.getData().toString("utf8"));
+            previousReport = JSON.parse(
+              zipEntry.getData().toString("utf8")
+            ) as Report;
           }
         });
       }
