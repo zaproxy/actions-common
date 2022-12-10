@@ -4,6 +4,7 @@ import fs from "fs";
 import { ReportFixture } from "./models/ReportFixture";
 import { mockSearchIssues } from "./testHelpers/githubApiMocks/mockSearchIssues";
 import { mockCreateIssue } from "./testHelpers/githubApiMocks/mockCreateIssue";
+import "jest-os-detection";
 
 jest.mock("@actions/artifact", () => ({
   create: () => ({
@@ -12,7 +13,7 @@ jest.mock("@actions/artifact", () => ({
 }));
 
 describe("processReport", () => {
-  describe("with a report file in place", () => {
+  describe.skipMac("with a report file in place", () => {
     const originalReadFileSync = fs.readFileSync;
 
     beforeEach(() => {

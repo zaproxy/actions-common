@@ -6,4 +6,5 @@ module.exports = {
     'default',
     'github-actions',
   ],
+  "setupFilesAfterEnv": ["jest-os-detection"],
 };
