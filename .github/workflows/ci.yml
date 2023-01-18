@@ -5,10 +5,6 @@ on:
     branches: [ master ]
   pull_request:
 
-defaults:
-  run:
-    working-directory: packages/scans
-
 jobs:
   build:
     strategy:
@@ -23,7 +19,6 @@ jobs:
         with:
           node-version: 16.x
           cache: npm
-          cache-dependency-path: packages/scans/package-lock.json
       - name: Install
         run: npm ci
       - name: Lint
