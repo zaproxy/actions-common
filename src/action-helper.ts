@@ -245,7 +245,8 @@ const actionHelper = {
     owner: string,
     repo: string,
     workSpace: string,
-    runnerID: string
+    runnerID: string,
+    artifactName = "zap_scan"
   ) => {
     let previousReport;
     try {
@@ -259,7 +260,7 @@ const actionHelper = {
       let artifactID;
       if (artifacts.length !== 0) {
         artifacts.forEach((a) => {
-          if (a["name"] === "zap_scan") {
+          if (a["name"] === artifactName) {
             artifactID = a["id"];
           }
         });
@@ -275,13 +276,13 @@ const actionHelper = {
 
         await new Promise<void>((resolve) =>
           request(download.url)
-            .pipe(fs.createWriteStream(`${workSpace}/zap_scan.zip`))
+            .pipe(fs.createWriteStream(`${workSpace}/${artifactName}.zip`))
             .on("finish", () => {
               resolve();
             })
         );
 
-        const zip = new AdmZip(`${workSpace}/zap_scan.zip`);
+        const zip = new AdmZip(`${workSpace}/${artifactName}.zip`);
         const zipEntries = zip.getEntries();
 
         zipEntries.forEach(function (zipEntry) {

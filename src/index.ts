@@ -24,7 +24,8 @@ const actionCommon = {
         workSpace,
         mdReportName,
         jsonReportName,
-        htmlReportName
+        htmlReportName,
+        artifactName
       );
       return;
     }
@@ -118,7 +119,8 @@ const actionCommon = {
             owner,
             repo,
             workSpace,
-            previousRunnerID
+            previousRunnerID,
+            artifactName
           );
           if (previousReport === undefined) {
             create_new_issue = true;
