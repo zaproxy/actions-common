@@ -21,6 +21,26 @@ describe("action-helper", () => {
       ).toContain("total: 1");
     });
 
+    it("shows the risk in front of the alert", () => {
+      expect(
+        createMessage(
+          [
+            new SiteFixture({
+              alerts: [
+                new AlertFixture({
+                  instances: [new InstanceFixture()],
+                  riskcode: "3",
+                  confidence: "2",
+                }),
+              ],
+            }),
+          ],
+          "2343454356",
+          "https://github.com/zaproxy/actions-common/actions/runs/4926339347"
+        )
+      ).toContain("High risk (Confidence: Medium):");
+    });
+
     it("returns an empty string if there are no sites", () => {
       expect(createMessage([], "runnerId", "runnerLink")).toBe("");
     });

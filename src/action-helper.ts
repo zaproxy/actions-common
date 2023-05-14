@@ -50,6 +50,22 @@ const processLineByLine = async (tsvFile: string) => {
 
   return plugins;
 };
+
+const descriptionsForRisk = {
+  "0": "Informational",
+  "1": "Low",
+  "2": "Medium",
+  "3": "High",
+};
+
+const descriptionsForConfidence = {
+  "0": "False Positive",
+  "1": "Low",
+  "2": "Medium",
+  "3": "High",
+  "4": "Confirmed",
+};
+
 export const createMessage = (
   sites: Site[] | FilteredSite[] | DifferenceSite[],
   runnerID: string,
@@ -68,10 +84,12 @@ export const createMessage = (
       if (site.alerts!.length !== 0) {
         msg = `${msg} ${TAB} **New Alerts** ${NXT_LINE}`;
         site.alerts!.forEach((alert) => {
+          const risk = descriptionsForRisk[alert.riskcode];
+          const confidence = descriptionsForConfidence[alert.confidence];
           msg =
             msg +
             TAB +
-            `${BULLET} **${alert.name}** [${alert.pluginid}] total: ${alert.instances.length}:  ${NXT_LINE}`;
+            `${BULLET} **${risk} risk (Confidence: ${confidence}): ${alert.name}** [${alert.pluginid}] total: ${alert.instances.length}:  ${NXT_LINE}`;
 
           for (let i = 0; i < alert["instances"].length; i++) {
             if (i >= instanceCount) {
