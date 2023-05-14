@@ -50,7 +50,7 @@ const processLineByLine = async (tsvFile: string) => {
 
   return plugins;
 };
-const createMessage = (
+export const createMessage = (
   sites: Site[] | FilteredSite[] | DifferenceSite[],
   runnerID: string,
   runnerLink: string
