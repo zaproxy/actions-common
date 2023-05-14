@@ -89,7 +89,7 @@ export const createMessage = (
           msg =
             msg +
             TAB +
-            `${BULLET} **${risk} risk (Confidence: ${confidence}): ${alert.name}** [${alert.pluginid}] total: ${alert.instances.length}:  ${NXT_LINE}`;
+            `${BULLET} **${risk} risk (Confidence: ${confidence}): ${alert.name}** [[${alert.pluginid}]](https://www.zaproxy.org/docs/alerts/${alert.pluginid}) total: ${alert.instances.length}:  ${NXT_LINE}`;
 
           for (let i = 0; i < alert["instances"].length; i++) {
             if (i >= instanceCount) {
