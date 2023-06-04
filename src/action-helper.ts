@@ -2,7 +2,6 @@ import fs, { type ReadStream } from "fs";
 import _ from "lodash";
 import readline from "readline";
 import AdmZip from "adm-zip";
-import request from "request";
 import { create } from "@actions/artifact";
 import type { GitHub } from "@actions/github/lib/utils";
 import { Report } from "./models/Report";
@@ -274,15 +273,7 @@ const actionHelper = {
           archive_format: "zip",
         });
 
-        await new Promise<void>((resolve) =>
-          request(download.url)
-            .pipe(fs.createWriteStream(`${workSpace}/${artifactName}.zip`))
-            .on("finish", () => {
-              resolve();
-            })
-        );
-
-        const zip = new AdmZip(`${workSpace}/${artifactName}.zip`);
+        const zip = new AdmZip(Buffer.from(download.data as ArrayBuffer));
         const zipEntries = zip.getEntries();
 
         zipEntries.forEach(function (zipEntry) {
