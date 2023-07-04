@@ -69,7 +69,7 @@ const actionCommon = {
       try {
         login = (await octokit.users.getAuthenticated()).data.login;
       } catch (e) {
-        console.log(`Using ${login} to serch for issues.`);
+        console.log(`Using ${login} to search for issues.`);
       }
       // Sometimes search API returns recently closed issue as an open issue
       for (let i = 0; i < issues.data.items.length; i++) {
