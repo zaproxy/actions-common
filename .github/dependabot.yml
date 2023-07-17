@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     commit-message:
       # Prefix all commit messages with "chore(deps): " for conventional commit messages
       prefix: "chore(deps)"
