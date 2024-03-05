@@ -13,7 +13,7 @@ const actionCommon = {
     issueTitle: string,
     repoName: string,
     allowIssueWriting = true,
-    artifactName = "zap_scan"
+    artifactName = "zap_scan",
   ) => {
     const jsonReportName = "report_json.json";
     const mdReportName = "report_md.md";
@@ -25,7 +25,7 @@ const actionCommon = {
         mdReportName,
         jsonReportName,
         htmlReportName,
-        artifactName
+        artifactName,
       );
       return;
     }
@@ -56,7 +56,7 @@ const actionCommon = {
 
     const issues = await octokit.search.issuesAndPullRequests({
       q: encodeURI(
-        `is:issue state:open repo:${owner}/${repo} ${issueTitle}`
+        `is:issue state:open repo:${owner}/${repo} ${issueTitle}`,
       ).replace(/%20/g, "+"),
       sort: "updated",
     });
@@ -72,9 +72,8 @@ const actionCommon = {
         console.log(`Using ${login} to search for issues.`);
       }
       // Sometimes search API returns recently closed issue as an open issue
-      for (let i = 0; i < issues.data.items.length; i++) {
-        const issue = issues.data.items[i];
-        if (issue["state"] === "open" && issue["user"]!["login"] === login) {
+      for (const issue of issues.data.items) {
+        if (issue.state === "open" && issue.user!.login === login) {
           openIssue = issue;
           break;
         }
@@ -84,33 +83,31 @@ const actionCommon = {
         create_new_issue = true;
       } else {
         console.log(
-          `Ongoing open issue has been identified #${openIssue["number"]}`
+          `Ongoing open issue has been identified #${openIssue.number}`,
         );
         // If there is no comments then read the body
-        if (openIssue["comments"] === 0) {
-          previousRunnerID = actionHelper.getRunnerID(openIssue["body"]!);
+        if (openIssue.comments === 0) {
+          previousRunnerID = actionHelper.getRunnerID(openIssue.body!);
         } else {
           const comments = await octokit.issues.listComments({
             owner: owner,
             repo: repo,
-            issue_number: openIssue["number"],
+            issue_number: openIssue.number,
           });
 
           let lastBotComment;
-          const lastCommentIndex = comments["data"].length - 1;
+          const lastCommentIndex = comments.data.length - 1;
           for (let i = lastCommentIndex; i >= 0; i--) {
-            if (comments["data"][i]["user"]!["login"] === login) {
-              lastBotComment = comments["data"][i];
+            if (comments.data[i].user!.login === login) {
+              lastBotComment = comments.data[i];
               break;
             }
           }
 
           if (lastBotComment === undefined) {
-            previousRunnerID = actionHelper.getRunnerID(openIssue["body"]!);
+            previousRunnerID = actionHelper.getRunnerID(openIssue.body!);
           } else {
-            previousRunnerID = actionHelper.getRunnerID(
-              lastBotComment["body"]!
-            );
+            previousRunnerID = actionHelper.getRunnerID(lastBotComment.body!);
           }
         }
 
@@ -121,7 +118,7 @@ const actionCommon = {
             repo,
             workSpace,
             previousRunnerID,
-            artifactName
+            artifactName,
           );
           if (previousReport === undefined) {
             create_new_issue = true;
@@ -132,7 +129,7 @@ const actionCommon = {
 
     if (plugins.length !== 0) {
       console.log(
-        `${plugins.length} plugins will be ignored according to the rules configuration`
+        `${plugins.length} plugins will be ignored according to the rules configuration`,
       );
       currentReport = await actionHelper.filterReport(currentReport, plugins);
 
@@ -140,7 +137,7 @@ const actionCommon = {
       fs.unlinkSync(`${workSpace}/${jsonReportName}`);
       fs.writeFileSync(
         `${workSpace}/${jsonReportName}`,
-        JSON.stringify(currentReport)
+        JSON.stringify(currentReport),
       );
       console.log("The current report is updated with the ignored alerts!");
     }
@@ -148,7 +145,7 @@ const actionCommon = {
     const newAlertExits = actionHelper.checkIfAlertsExists(currentReport);
 
     console.log(
-      `Alerts present in the current report: ${newAlertExits.toString()}`
+      `Alerts present in the current report: ${newAlertExits.toString()}`,
     );
 
     if (!newAlertExits) {
@@ -175,12 +172,12 @@ const actionCommon = {
           console.log(
             `Error occurred while closing the issue with a comment! err: ${(
               err as Error
-            ).toString()}`
+            ).toString()}`,
           );
         }
       } else if (openIssue != null && openIssue.state === "closed") {
         console.log(
-          "No alerts found by ZAP Scan and no active issue is found in the repository, exiting the program!"
+          "No alerts found by ZAP Scan and no active issue is found in the repository, exiting the program!",
         );
       }
       return;
@@ -192,9 +189,9 @@ const actionCommon = {
       ` to download the report.`;
     if (create_new_issue) {
       const msg = actionHelper.createMessage(
-        currentReport["site"],
+        currentReport.site,
         runnerInfo,
-        runnerLink
+        runnerLink,
       );
       const newIssue = await octokit.issues.create({
         owner: owner,
@@ -203,46 +200,46 @@ const actionCommon = {
         body: msg,
       });
       console.log(
-        `Process completed successfully and a new issue #${newIssue.data.number} has been created for the ZAP Scan.`
+        `Process completed successfully and a new issue #${newIssue.data.number} has been created for the ZAP Scan.`,
       );
     } else {
       const siteClone = actionHelper.generateDifference(
         currentReport,
-        previousReport as Report
+        previousReport as Report,
       );
       if (currentReport.updated) {
         console.log(
-          "The current report has changes compared to the previous report"
+          "The current report has changes compared to the previous report",
         );
         try {
           const msg = actionHelper.createMessage(
             siteClone,
             runnerInfo,
-            runnerLink
+            runnerLink,
           );
           await octokit.issues.createComment({
             owner: owner,
             repo: repo,
-            issue_number: openIssue!["number"],
+            issue_number: openIssue!.number,
             body: msg,
           });
 
           console.log(
             `The issue #${
               openIssue!.number
-            } has been updated with the latest ZAP scan results!`
+            } has been updated with the latest ZAP scan results!`,
           );
           console.log("ZAP Scan process completed successfully!");
         } catch (err) {
           console.log(
             `Error occurred while updating the issue #${
               openIssue!.number
-            } with the latest ZAP scan: ${(err as Error).toString()}`
+            } with the latest ZAP scan: ${(err as Error).toString()}`,
           );
         }
       } else {
         console.log(
-          "No changes have been observed from the previous scan and current scan!, exiting the program!"
+          "No changes have been observed from the previous scan and current scan!, exiting the program!",
         );
       }
     }
@@ -252,7 +249,7 @@ const actionCommon = {
       mdReportName,
       jsonReportName,
       htmlReportName,
-      artifactName
+      artifactName,
     );
   },
 };

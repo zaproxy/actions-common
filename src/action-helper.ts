@@ -38,7 +38,7 @@ const actionHelper = {
         crlfDelay: Infinity,
       });
       for await (const line of rl) {
-        if (line.charAt(0) !== "#") {
+        if (!line.startsWith("#")) {
           const tmp = line.split("\t");
           if (
             tmp[0].trim() !== "" &&
@@ -58,7 +58,7 @@ const actionHelper = {
   createMessage: (
     sites: Site[] | FilteredSite[] | DifferenceSite[],
     runnerID: string,
-    runnerLink: string
+    runnerLink: string,
   ) => {
     const NXT_LINE = "\n";
     const TAB = "\t";
@@ -79,12 +79,12 @@ const actionHelper = {
               TAB +
               `${BULLET} **${alert.name}** [${alert.pluginid}] total: ${alert.instances.length}:  ${NXT_LINE}`;
 
-            for (let i = 0; i < alert["instances"].length; i++) {
+            for (let i = 0; i < alert.instances.length; i++) {
               if (i >= instanceCount) {
                 msg = msg + TAB + TAB + `${BULLET} .. ${NXT_LINE}`;
                 break;
               }
-              const instance = alert["instances"][i];
+              const instance = alert.instances[i];
               msg =
                 msg +
                 TAB +
@@ -133,7 +133,7 @@ const actionHelper = {
 
   generateDifference: (
     newReport: Report | FilteredReport,
-    oldReport: Report | FilteredReport
+    oldReport: Report | FilteredReport,
   ): Site[] => {
     newReport.updated = false;
     const siteClone: Site[] = [];
@@ -141,7 +141,7 @@ const actionHelper = {
       // Check if the new report site already exists in the previous report
       const previousSite = _.filter(
         oldReport.site,
-        (s) => s["@name"] === newReportSite["@name"]
+        (s) => s["@name"] === newReportSite["@name"],
       );
       // If does not exists add it to the array without further processing
       if (previousSite.length === 0) {
@@ -156,29 +156,29 @@ const actionHelper = {
         const newAlerts = _.differenceBy(
           currentAlerts,
           previousAlerts!,
-          "pluginid"
+          "pluginid",
         );
         let removedAlerts = _.differenceBy(
           previousAlerts,
           currentAlerts!,
-          "pluginid"
+          "pluginid",
         );
 
         let ignoredAlerts: Alert[] = [];
         if (isFilteredSite(newReportSite) && isFilteredSite(previousSite[0])) {
           ignoredAlerts = _.differenceBy(
-            newReportSite["ignoredAlerts"],
-            previousSite[0]["ignoredAlerts"],
-            "pluginid"
+            newReportSite.ignoredAlerts,
+            previousSite[0].ignoredAlerts,
+            "pluginid",
           );
         } else if (isFilteredSite(newReportSite)) {
-          ignoredAlerts = newReportSite["ignoredAlerts"];
+          ignoredAlerts = newReportSite.ignoredAlerts;
         }
 
         removedAlerts = _.differenceBy(
           removedAlerts,
           ignoredAlerts,
-          "pluginid"
+          "pluginid",
         );
 
         newSite.alerts = newAlerts;
@@ -216,7 +216,7 @@ const actionHelper = {
 
   filterReport: async (
     jsonReport: Report,
-    plugins: string[]
+    plugins: string[],
   ): Promise<FilteredReport> => {
     jsonReport.site.forEach((s) => {
       if ("alerts" in s && s.alerts!.length !== 0) {
@@ -232,7 +232,7 @@ const actionHelper = {
 
         console.log(
           `#${newAlerts.length} alerts have been identified` +
-            ` and #${removedAlerts.length} alerts have been ignored for the site.`
+            ` and #${removedAlerts.length} alerts have been ignored for the site.`,
         );
       }
     });
@@ -245,7 +245,7 @@ const actionHelper = {
     repo: string,
     workSpace: string,
     runnerID: string,
-    artifactName = "zap_scan"
+    artifactName = "zap_scan",
   ) => {
     let previousReport;
     try {
@@ -259,8 +259,8 @@ const actionHelper = {
       let artifactID;
       if (artifacts.length !== 0) {
         artifacts.forEach((a) => {
-          if (a["name"] === artifactName) {
-            artifactID = a["id"];
+          if (a.name === artifactName) {
+            artifactID = a.id;
           }
         });
       }
@@ -279,7 +279,7 @@ const actionHelper = {
         zipEntries.forEach(function (zipEntry) {
           if (zipEntry.entryName === "report_json.json") {
             previousReport = JSON.parse(
-              zipEntry.getData().toString("utf8")
+              zipEntry.getData().toString("utf8"),
             ) as Report;
           }
         });
@@ -295,7 +295,7 @@ const actionHelper = {
     mdReport: string,
     jsonReport: string,
     htmlReport: string,
-    artifactName = "zap_scan"
+    artifactName = "zap_scan",
   ) => {
     const artifactClient = create();
     const files = [
@@ -312,7 +312,7 @@ const actionHelper = {
       artifactName,
       files,
       rootDirectory,
-      options
+      options,
     );
   },
 };
