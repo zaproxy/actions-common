@@ -45,7 +45,7 @@ describe("processReport", () => {
           [],
           "currentRunnerID",
           "issueTitle",
-          `${owner}/${repo}`
+          `${owner}/${repo}`,
         );
 
         expect(scope.isDone()).toBe(true);
