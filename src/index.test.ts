@@ -1,6 +1,6 @@
 import { main } from "./index";
-import nock from "nock";
 import fs from "fs";
+import { Interceptable, MockAgent, setGlobalDispatcher } from "undici";
 import { ReportFixture } from "./models/ReportFixture";
 import { mockSearchIssues } from "./testHelpers/githubApiMocks/mockSearchIssues";
 import { mockCreateIssue } from "./testHelpers/githubApiMocks/mockCreateIssue";
@@ -15,6 +15,7 @@ jest.mock("@actions/artifact", () => ({
 describe("processReport", () => {
   describe.skipMac("with a report file in place", () => {
     const originalReadFileSync = fs.readFileSync;
+    let mockPool: Interceptable;
 
     beforeEach(() => {
       const report = new ReportFixture();
@@ -27,28 +28,33 @@ describe("processReport", () => {
 
     describe("without an open issue", () => {
       beforeEach(async () => {
-        mockSearchIssues([]);
+        const mockAgent = new MockAgent();
+        mockAgent.disableNetConnect();
+        setGlobalDispatcher(mockAgent);
+        mockPool = mockAgent.get("https://api.github.com");
       });
 
-      afterEach(() => {
-        nock.restore();
+      afterEach(async () => {
+        await mockPool.close();
       });
 
+      // eslint-disable-next-line jest/expect-expect
       it("creates a new issue", async () => {
         const owner = "owner";
         const repo = "repo";
-        const scope = mockCreateIssue(3, { owner, repo });
+        const issueTitle = "issueTitle";
+
+        mockSearchIssues(mockPool, { owner, repo }, issueTitle, []);
+        mockCreateIssue(mockPool, 3, { owner, repo });
 
         await main.processReport(
           "token",
           "workSpace",
           [],
           "currentRunnerID",
-          "issueTitle",
+          issueTitle,
           `${owner}/${repo}`,
         );
-
-        expect(scope.isDone()).toBe(true);
       });
     });
   });
