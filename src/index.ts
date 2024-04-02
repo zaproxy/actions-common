@@ -188,11 +188,9 @@ const actionCommon = {
       `View the [following link](${context.serverUrl}/${owner}/${repo}/actions/runs/${currentRunnerID})` +
       ` to download the report.`;
     if (create_new_issue) {
-      const msg = actionHelper.createMessage(
-        currentReport.site,
-        runnerInfo,
-        runnerLink,
-      );
+      const msg =
+        actionHelper.createMessage(currentReport.site, runnerInfo, runnerLink) +
+        "\n\n---\nZAP is supported by the [Crash Override Open Source Fellowship](https://crashoverride.com/?zap=act)";
       const newIssue = await octokit.issues.create({
         owner: owner,
         repo: repo,
