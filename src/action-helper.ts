@@ -2,14 +2,14 @@ import fs, { type ReadStream } from "fs";
 import _ from "lodash";
 import readline from "readline";
 import AdmZip from "adm-zip";
+import { Octokit } from "@octokit/core";
 import { create } from "@actions/artifact";
-import type { GitHub } from "@actions/github/lib/utils";
-import { Report } from "./models/Report";
-import { Site } from "./models/Site";
-import { FilteredSite, isFilteredSite } from "./models/FilteredSite";
-import { DifferenceSite, isDifferenceSite } from "./models/DifferenceSite";
-import { FilteredReport } from "./models/FilteredReport";
-import { Alert } from "./models/Alert";
+import { Report } from "./models/Report.js";
+import { Site } from "./models/Site.js";
+import { FilteredSite, isFilteredSite } from "./models/FilteredSite.js";
+import { DifferenceSite, isDifferenceSite } from "./models/DifferenceSite.js";
+import { FilteredReport } from "./models/FilteredReport.js";
+import { Alert } from "./models/Alert.js";
 
 function createReadStreamSafe(filename: string): Promise<ReadStream> {
   return new Promise((resolve, reject) => {
@@ -240,7 +240,7 @@ const actionHelper = {
   },
 
   readPreviousReport: async (
-    octokit: InstanceType<typeof GitHub>["rest"],
+    octokit: InstanceType<typeof Octokit>,
     owner: string,
     repo: string,
     workSpace: string,
@@ -249,16 +249,19 @@ const actionHelper = {
   ) => {
     let previousReport;
     try {
-      const artifactList = await octokit.actions.listWorkflowRunArtifacts({
-        owner: owner,
-        repo: repo,
-        run_id: runnerID as unknown as number,
-      });
+      const artifactList = await octokit.request(
+        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+        {
+          owner: owner,
+          repo: repo,
+          run_id: runnerID as unknown as number,
+        },
+      );
 
       const artifacts = artifactList.data.artifacts;
       let artifactID;
       if (artifacts.length !== 0) {
-        artifacts.forEach((a) => {
+        artifacts.forEach((a: Record<string, unknown>) => {
           if (a.name === artifactName) {
             artifactID = a.id;
           }
@@ -266,12 +269,15 @@ const actionHelper = {
       }
 
       if (artifactID !== undefined) {
-        const download = await octokit.actions.downloadArtifact({
-          owner: owner,
-          repo: repo,
-          artifact_id: artifactID,
-          archive_format: "zip",
-        });
+        const download = await octokit.request(
+          "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/zip",
+          {
+            owner: owner,
+            repo: repo,
+            artifact_id: artifactID,
+            archive_format: "zip",
+          },
+        );
 
         const zip = new AdmZip(Buffer.from(download.data as ArrayBuffer));
         const zipEntries = zip.getEntries();
