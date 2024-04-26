@@ -1,5 +1,5 @@
-import { Alert } from "./Alert";
-import { InstanceFixture } from "./InstanceFixture";
+import { Alert } from "./Alert.js";
+import { InstanceFixture } from "./InstanceFixture.js";
 
 export class AlertFixture implements Alert {
   instances = [new InstanceFixture()];

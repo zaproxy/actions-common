@@ -1,5 +1,5 @@
-import { Site } from "./Site";
-import { Alert } from "./Alert";
+import { Site } from "./Site.js";
+import { Alert } from "./Alert.js";
 
 export interface FilteredSite extends Site {
   ignoredAlerts: Alert[];

@@ -1,8 +1,12 @@
 import fs from "fs";
-import { getOctokit, context } from "@actions/github";
-import actionHelper from "./action-helper";
+import { Octokit as BaseOcto, OctokitOptions } from "@octokit/core";
+import { throttling } from "@octokit/plugin-throttling";
+import { retry } from "@octokit/plugin-retry";
+import { requestLog } from "@octokit/plugin-request-log";
+import actionHelper from "./action-helper.js";
 import { components } from "@octokit/openapi-types";
-import { Report } from "./models/Report";
+import { Report } from "./models/Report.js";
+import { Fetch } from "@octokit/types";
 
 const actionCommon = {
   processReport: async (
@@ -14,6 +18,7 @@ const actionCommon = {
     repoName: string,
     allowIssueWriting = true,
     artifactName = "zap_scan",
+    fetcher: Fetch = fetch,
   ) => {
     const jsonReportName = "report_json.json";
     const mdReportName = "report_md.md";
@@ -42,9 +47,36 @@ const actionCommon = {
     const owner = tmp[0];
     const repo = tmp[1];
 
-    const octokit = getOctokit(token, {
-      baseUrl: process.env.GITHUB_API_URL,
-    }).rest;
+    const MyOctokit = BaseOcto.plugin(retry, throttling, requestLog);
+    if (fetcher !== fetch) {
+      MyOctokit.plugin(requestLog);
+    }
+    const octokit = new MyOctokit({
+      auth: token,
+      baseUrl: process.env.GITHUB_API_URL ?? "https://api.github.com",
+      throttle: {
+        onRateLimit: (retryAfter: number, options: OctokitOptions) => {
+          if (options?.request?.retryCount <= 2) {
+            console.log(
+              `Hit rate limit. Retrying after ${retryAfter} seconds!`,
+            );
+            return true;
+          }
+        },
+        onSecondaryRateLimit: (retryAfter: number) => {
+          console.log(
+            `Hit secondary rate limit. Retrying after ${retryAfter} seconds!`,
+          );
+          return true;
+        },
+      },
+      request: {
+        // Fetch is a type from @octokit/types, which is set to any..
+        // so we have to disable the eslint check for now.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        fetch: fetcher,
+      },
+    });
 
     try {
       const jReportFile = fs.readFileSync(`${workSpace}/${jsonReportName}`);
@@ -54,7 +86,7 @@ const actionCommon = {
       return;
     }
 
-    const issues = await octokit.search.issuesAndPullRequests({
+    const issues = await octokit.request("GET /search/issues", {
       q: encodeURI(
         `is:issue state:open repo:${owner}/${repo} ${issueTitle}`,
       ).replace(/%20/g, "+"),
@@ -67,7 +99,7 @@ const actionCommon = {
     } else {
       let login = "github-actions[bot]";
       try {
-        login = (await octokit.users.getAuthenticated()).data.login;
+        login = (await octokit.request("GET /user")).data.login;
       } catch (e) {
         console.log(`Using ${login} to search for issues.`);
       }
@@ -89,11 +121,14 @@ const actionCommon = {
         if (openIssue.comments === 0) {
           previousRunnerID = actionHelper.getRunnerID(openIssue.body!);
         } else {
-          const comments = await octokit.issues.listComments({
-            owner: owner,
-            repo: repo,
-            issue_number: openIssue.number,
-          });
+          const comments = await octokit.request(
+            "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+            {
+              owner: owner,
+              repo: repo,
+              issue_number: openIssue.number,
+            },
+          );
 
           let lastBotComment;
           const lastCommentIndex = comments.data.length - 1;
@@ -155,18 +190,24 @@ const actionCommon = {
         // close the issue with a comment
         console.log(`Starting to close the issue #${openIssue.number}`);
         try {
-          await octokit.issues.createComment({
-            owner: owner,
-            repo: repo,
-            issue_number: openIssue.number,
-            body: "All the alerts have been resolved during the last ZAP Scan!",
-          });
-          await octokit.issues.update({
-            owner: owner,
-            repo: repo,
-            issue_number: openIssue.number,
-            state: "closed",
-          });
+          await octokit.request(
+            "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+            {
+              owner: owner,
+              repo: repo,
+              issue_number: openIssue.number,
+              body: "All the alerts have been resolved during the last ZAP Scan!",
+            },
+          );
+          await octokit.request(
+            "PATCH /repos/{owner}/{repo}/issues/{issue_number}",
+            {
+              owner: owner,
+              repo: repo,
+              issue_number: openIssue.number,
+              state: "closed",
+            },
+          );
           console.log(`Successfully closed the issue #${openIssue.number}`);
         } catch (err) {
           console.log(
@@ -185,18 +226,21 @@ const actionCommon = {
 
     const runnerInfo = `RunnerID:${currentRunnerID}`;
     const runnerLink =
-      `View the [following link](${context.serverUrl}/${owner}/${repo}/actions/runs/${currentRunnerID})` +
+      `View the [following link](${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${currentRunnerID})` +
       ` to download the report.`;
     if (create_new_issue) {
       const msg =
         actionHelper.createMessage(currentReport.site, runnerInfo, runnerLink) +
         "\n\n---\nZAP is supported by the [Crash Override Open Source Fellowship](https://crashoverride.com/?zap=act)";
-      const newIssue = await octokit.issues.create({
-        owner: owner,
-        repo: repo,
-        title: issueTitle,
-        body: msg,
-      });
+      const newIssue = await octokit.request(
+        "POST /repos/{owner}/{repo}/issues",
+        {
+          owner: owner,
+          repo: repo,
+          title: issueTitle,
+          body: msg,
+        },
+      );
       console.log(
         `Process completed successfully and a new issue #${newIssue.data.number} has been created for the ZAP Scan.`,
       );
@@ -215,12 +259,15 @@ const actionCommon = {
             runnerInfo,
             runnerLink,
           );
-          await octokit.issues.createComment({
-            owner: owner,
-            repo: repo,
-            issue_number: openIssue!.number,
-            body: msg,
-          });
+          await octokit.request(
+            "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+            {
+              owner: owner,
+              repo: repo,
+              issue_number: openIssue!.number,
+              body: msg,
+            },
+          );
 
           console.log(
             `The issue #${
