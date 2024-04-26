@@ -1,4 +1,4 @@
-import { Instance } from "./Instance";
+import { Instance } from "./Instance.js";
 
 export interface Alert {
   name: string;

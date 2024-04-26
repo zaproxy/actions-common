@@ -1,6 +1,6 @@
-import { FilteredSite } from "./FilteredSite";
-import { Site } from "./Site";
-import { Alert } from "./Alert";
+import { FilteredSite } from "./FilteredSite.js";
+import { Site } from "./Site.js";
+import { Alert } from "./Alert.js";
 
 export interface DifferenceSite extends FilteredSite {
   /** Alerts that are not in the current report but were in the last one */

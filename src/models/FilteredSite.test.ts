@@ -1,4 +1,4 @@
-import { isFilteredSite } from "./FilteredSite";
+import { isFilteredSite } from "./FilteredSite.js";
 
 describe("FilteredSite", () => {
   describe("isFilteredSite", () => {

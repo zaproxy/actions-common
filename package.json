@@ -1,10 +1,14 @@
 {
   "name": "@zaproxy/actions-common-scans",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ZAP scan common code",
   "homepage": "https://github.com/zaproxy/actions-common/tree/master/packages/scans",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src/",
@@ -28,13 +32,19 @@
   },
   "dependencies": {
     "@actions/artifact": "^1.1.0",
-    "@actions/github": "^6.0.0",
+    "@babel/preset-env": "^7.24.4",
+    "@octokit/core": "^6.1.2",
+    "@octokit/plugin-retry": "^7.1.1",
+    "@octokit/plugin-throttling": "^9.2.1",
+    "@octokit/rest": "^20.1.0",
+    "@octokit/types": "^13.4.1",
     "adm-zip": "^0.5.10",
+    "babel-jest": "^29.7.0",
     "jest-os-detection": "^1.3.1",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "@octokit/rest": "^20.0.2",
+    "@babel/preset-typescript": "^7.24.1",
     "@semantic-release/changelog": "^6.0.2",
     "@semantic-release/commit-analyzer": "^10.0.0",
     "@semantic-release/git": "^10.0.1",
@@ -53,10 +63,10 @@
     "eslint-plugin-jest": "^27.9.0",
     "eslint-plugin-jest-formatting": "^3.1.0",
     "eslint-plugin-prettier": "^5.1.3",
-    "jest": "^29.2.2",
+    "jest": "^29.7.0",
     "prettier": "^3.2.5",
     "semantic-release": "^23.0.2",
-    "ts-jest": "^29.0.3",
+    "ts-jest": "^29.1.2",
     "typescript": "^5.0.4",
     "undici": "^6.7.1"
   }

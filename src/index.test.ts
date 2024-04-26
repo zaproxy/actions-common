@@ -1,9 +1,9 @@
-import { main } from "./index";
+import { main } from "./index.js";
 import fs from "fs";
 import { Interceptable, MockAgent, setGlobalDispatcher } from "undici";
-import { ReportFixture } from "./models/ReportFixture";
-import { mockSearchIssues } from "./testHelpers/githubApiMocks/mockSearchIssues";
-import { mockCreateIssue } from "./testHelpers/githubApiMocks/mockCreateIssue";
+import { ReportFixture } from "./models/ReportFixture.js";
+import { mockSearchIssues } from "./testHelpers/githubApiMocks/mockSearchIssues.js";
+import { mockCreateIssue } from "./testHelpers/githubApiMocks/mockCreateIssue.js";
 import "jest-os-detection";
 
 jest.mock("@actions/artifact", () => ({

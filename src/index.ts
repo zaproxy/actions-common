@@ -1,8 +1,10 @@
 import fs from "fs";
-import { getOctokit, context } from "@actions/github";
-import actionHelper from "./action-helper";
+import { Octokit as BaseOcto } from "@octokit/core";
+import { throttling } from "@octokit/plugin-throttling";
+import { retry } from "@octokit/plugin-retry";
+import actionHelper from "./action-helper.js";
 import { components } from "@octokit/openapi-types";
-import { Report } from "./models/Report";
+import { Report } from "./models/Report.js";
 
 const actionCommon = {
   processReport: async (
@@ -33,7 +35,7 @@ const actionCommon = {
     let openIssue:
       | components["schemas"]["issue-search-result-item"]
       | undefined;
-    let currentReport: Report | undefined;
+    let currentReport: Report | undefined
     let previousRunnerID;
     let previousReport: Partial<Report> | undefined = {};
     let create_new_issue = false;
@@ -42,9 +44,26 @@ const actionCommon = {
     const owner = tmp[0];
     const repo = tmp[1];
 
-    const octokit = getOctokit(token, {
+    const MyOctokit = BaseOcto.plugin(
+      retry,
+      throttling,
+    );
+    const octokit = new MyOctokit({
+      auth: token,
       baseUrl: process.env.GITHUB_API_URL,
-    }).rest;
+      throttle: {
+        onRateLimit: (retryAfter: number, options: any) => {
+          if (options?.request?.retryCount <= 2) {
+            console.log(`Hit rate limit. Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+        onSecondaryRateLimit: (retryAfter: number, options: any) => {
+          console.log(`Hit secondary rate limit. Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+    });
 
     try {
       const jReportFile = fs.readFileSync(`${workSpace}/${jsonReportName}`);
@@ -54,7 +73,7 @@ const actionCommon = {
       return;
     }
 
-    const issues = await octokit.search.issuesAndPullRequests({
+    const issues = await octokit.request('GET /search/issues', {
       q: encodeURI(
         `is:issue state:open repo:${owner}/${repo} ${issueTitle}`,
       ).replace(/%20/g, "+"),
@@ -67,7 +86,7 @@ const actionCommon = {
     } else {
       let login = "github-actions[bot]";
       try {
-        login = (await octokit.users.getAuthenticated()).data.login;
+        login = (await octokit.request('GET /user')).data.login;
       } catch (e) {
         console.log(`Using ${login} to search for issues.`);
       }
@@ -89,7 +108,7 @@ const actionCommon = {
         if (openIssue.comments === 0) {
           previousRunnerID = actionHelper.getRunnerID(openIssue.body!);
         } else {
-          const comments = await octokit.issues.listComments({
+          const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
             owner: owner,
             repo: repo,
             issue_number: openIssue.number,
@@ -155,13 +174,13 @@ const actionCommon = {
         // close the issue with a comment
         console.log(`Starting to close the issue #${openIssue.number}`);
         try {
-          await octokit.issues.createComment({
+          await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
             owner: owner,
             repo: repo,
             issue_number: openIssue.number,
             body: "All the alerts have been resolved during the last ZAP Scan!",
           });
-          await octokit.issues.update({
+          await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
             owner: owner,
             repo: repo,
             issue_number: openIssue.number,
@@ -185,13 +204,13 @@ const actionCommon = {
 
     const runnerInfo = `RunnerID:${currentRunnerID}`;
     const runnerLink =
-      `View the [following link](${context.serverUrl}/${owner}/${repo}/actions/runs/${currentRunnerID})` +
+      `View the [following link](https://github.com/${owner}/${repo}/actions/runs/${currentRunnerID})` +
       ` to download the report.`;
     if (create_new_issue) {
       const msg =
         actionHelper.createMessage(currentReport.site, runnerInfo, runnerLink) +
         "\n\n---\nZAP is supported by the [Crash Override Open Source Fellowship](https://crashoverride.com/?zap=act)";
-      const newIssue = await octokit.issues.create({
+      const newIssue = await octokit.request('POST /repos/{owner}/{repo}/issues', {
         owner: owner,
         repo: repo,
         title: issueTitle,
@@ -215,7 +234,7 @@ const actionCommon = {
             runnerInfo,
             runnerLink,
           );
-          await octokit.issues.createComment({
+          await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
             owner: owner,
             repo: repo,
             issue_number: openIssue!.number,
@@ -223,15 +242,13 @@ const actionCommon = {
           });
 
           console.log(
-            `The issue #${
-              openIssue!.number
+            `The issue #${openIssue!.number
             } has been updated with the latest ZAP scan results!`,
           );
           console.log("ZAP Scan process completed successfully!");
         } catch (err) {
           console.log(
-            `Error occurred while updating the issue #${
-              openIssue!.number
+            `Error occurred while updating the issue #${openIssue!.number
             } with the latest ZAP scan: ${(err as Error).toString()}`,
           );
         }
