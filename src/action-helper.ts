@@ -49,7 +49,11 @@ const actionHelper = {
         }
       }
     } catch (err) {
-      console.log(`Error when reading the rules file: ${tsvFile}`);
+      console.error(
+        `Error when reading the rules file: ${tsvFile} err: ${(
+          err as Error
+        ).toString()}`,
+      );
     }
 
     return plugins;
@@ -203,7 +207,11 @@ const actionHelper = {
     try {
       res = fs.readFileSync(reportName, { encoding: "base64" });
     } catch (err) {
-      console.log("error while reading the markdown file!");
+      console.error(
+        `Error occurred while reading the markdown file! err: ${(
+          err as Error
+        ).toString()}`,
+      );
     }
     return res;
   },
@@ -290,8 +298,12 @@ const actionHelper = {
           }
         });
       }
-    } catch (e) {
-      console.log(`Error occurred while downloading the artifacts!`);
+    } catch (err) {
+      console.error(
+        `Error occurred while downloading the artifacts! err: ${(
+          err as Error
+        ).toString()}`,
+      );
     }
     return previousReport;
   },
