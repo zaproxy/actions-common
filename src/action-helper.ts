@@ -49,7 +49,9 @@ const actionHelper = {
         }
       }
     } catch (err) {
-      console.log(`Error when reading the rules file: ${tsvFile}`);
+      console.log(`Error when reading the rules file: ${tsvFile} err: ${(
+              err as Error
+      ).toString()}`);
     }
 
     return plugins;
@@ -284,8 +286,10 @@ const actionHelper = {
           }
         });
       }
-    } catch (e) {
-      console.log(`Error occurred while downloading the artifacts!`);
+    } catch (err) {
+      console.log(`Error occurred while downloading the artifacts! err: ${(
+              err as Error
+            ).toString()}`);
     }
     return previousReport;
   },
