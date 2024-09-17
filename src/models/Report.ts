@@ -1,4 +1,4 @@
-import { Site } from "./Site";
+import { Site } from "./Site.js";
 
 export interface Report {
   site: Site[];

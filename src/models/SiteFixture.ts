@@ -1,5 +1,5 @@
-import { Site } from "./Site";
-import { AlertFixture } from "./AlertFixture";
+import { Site } from "./Site.js";
+import { AlertFixture } from "./AlertFixture.js";
 
 export class SiteFixture implements Site {
   "@name" = "http://localhost:8080";
