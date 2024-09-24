@@ -231,7 +231,7 @@ const actionCommon = {
     if (create_new_issue) {
       const msg =
         actionHelper.createMessage(currentReport.site, runnerInfo, runnerLink) +
-        "\n\n---\nZAP is supported by the [Crash Override Open Source Fellowship](https://crashoverride.com/?zap=act)";
+        "\n\n---\n[ZAP by Checkmarx](https://checkmarx.com/)";
       const newIssue = await octokit.request(
         "POST /repos/{owner}/{repo}/issues",
         {
