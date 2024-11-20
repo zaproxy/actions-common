@@ -3,7 +3,7 @@ import _ from "lodash";
 import readline from "readline";
 import AdmZip from "adm-zip";
 import { Octokit } from "@octokit/core";
-import { create } from "@actions/artifact";
+import { DefaultArtifactClient } from "@actions/artifact";
 import { Report } from "./models/Report.js";
 import { Site } from "./models/Site.js";
 import { FilteredSite, isFilteredSite } from "./models/FilteredSite.js";
@@ -303,16 +303,14 @@ const actionHelper = {
     htmlReport: string,
     artifactName = "zap_scan",
   ) => {
-    const artifactClient = create();
+    const artifactClient = new DefaultArtifactClient();
     const files = [
       `${rootDir}/${mdReport}`,
       `${rootDir}/${jsonReport}`,
       `${rootDir}/${htmlReport}`,
     ];
     const rootDirectory = rootDir;
-    const options = {
-      continueOnError: true,
-    };
+    const options = {};
 
     await artifactClient.uploadArtifact(
       artifactName,
