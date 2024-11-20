@@ -4,12 +4,18 @@ import fetchMock from "fetch-mock";
 import { ReportFixture } from "./models/ReportFixture.js";
 import "jest-os-detection";
 import { Fetch } from "@octokit/types";
+import { DefaultArtifactClient } from "@actions/artifact";
 
-jest.mock("@actions/artifact", () => ({
-  create: () => ({
+jest.mock("@actions/artifact");
+jest.mocked(DefaultArtifactClient).mockImplementation(() => {
+  return {
     uploadArtifact: jest.fn(),
-  }),
-}));
+    downloadArtifact: jest.fn(),
+    listArtifacts: jest.fn(),
+    getArtifact: jest.fn(),
+    deleteArtifact: jest.fn(),
+  };
+});
 
 describe("processReport", () => {
   describe.skipMac("with a report file in place", () => {
