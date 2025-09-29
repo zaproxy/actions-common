@@ -22,7 +22,7 @@ function createReadStreamSafe(filename: string): Promise<ReadStream> {
 
 const actionHelper = {
   getRunnerID: (body: string): string | null => {
-    const results = body.match("RunnerID:\\d+");
+    const results = /RunnerID:\d+/.exec(body);
     if (results !== null && results.length !== 0) {
       return results[0].split(":")[1];
     }

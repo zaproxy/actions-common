@@ -3,7 +3,6 @@ import fs from "fs";
 import fetchMock from "fetch-mock";
 import { ReportFixture } from "./models/ReportFixture.js";
 import "jest-os-detection";
-import { Fetch } from "@octokit/types";
 import { DefaultArtifactClient } from "@actions/artifact";
 
 jest.mock("@actions/artifact");
@@ -18,7 +17,7 @@ jest.mocked(DefaultArtifactClient).mockImplementation(() => {
 });
 
 describe("processReport", () => {
-  describe.skipMac("with a report file in place", () => {
+  describe("with a report file in place", () => {
     const originalReadFileSync = fs.readFileSync;
     const baseUrl = process.env.GITHUB_API_URL ?? "https://api.github.com";
 
@@ -38,18 +37,13 @@ describe("processReport", () => {
         const repo = "repo";
         const issueTitle = "issueTitle";
 
-        // Fetch is a type from @octokit/types, which is set to any..
-        // so we have to disable the eslint check for now.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
-        const mock: Fetch = fetchMock
-          .sandbox()
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const mock = fetchMock
+          .createInstance()
           .getOnce(
-            `${baseUrl}/search/issues?q=is%3Aissue+state%3Aopen+repo%3A${owner}%2F${repo}+${issueTitle}&sort=updated`,
+            `${baseUrl}/search/issues?q=is%3Aissue+state%3Aopen+repo%3A${owner}%2F${repo}+${issueTitle}&sort=updated&advanced_search=true`,
             { total_count: 0, incomplete_results: false, items: [] },
             {},
           )
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           .postOnce(
             `${baseUrl}/repos/${owner}/${repo}/issues`,
             { number: 3 },
@@ -65,7 +59,7 @@ describe("processReport", () => {
           `${owner}/${repo}`,
           true,
           "zap_scan",
-          mock,
+          mock.fetchHandler.bind(mock),
         );
       });
     });
