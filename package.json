@@ -31,7 +31,7 @@
     "url": "https://github.com/zaproxy/actions-common/issues"
   },
   "dependencies": {
-    "@actions/artifact": "^2.3.2",
+    "@actions/artifact": "^4.0.0",
     "@babel/preset-env": "^7.24.4",
     "@octokit/core": "^7.0.4",
     "@octokit/plugin-request-log": "^6.0.0",
