@@ -189,7 +189,7 @@ const actionCommon = {
     if (!newAlertExits) {
       // If no new alerts have been found close the issue
       console.log("No new alerts have been identified by the ZAP Scan");
-      if (openIssue != null && openIssue.state === "open") {
+      if (openIssue?.state === "open") {
         // close the issue with a comment
         console.log(`Starting to close the issue #${openIssue.number}`);
         try {
@@ -219,7 +219,7 @@ const actionCommon = {
             ).toString()}`,
           );
         }
-      } else if (openIssue != null && openIssue.state === "closed") {
+      } else if (openIssue?.state === "closed") {
         console.log(
           "No alerts found by ZAP Scan and no active issue is found in the repository, exiting the program!",
         );
