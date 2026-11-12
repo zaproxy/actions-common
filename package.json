@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@actions/artifact": "^4.0.0",
-    "@babel/preset-env": "^7.24.4",
+    "@babel/preset-env": "^8.0.2",
     "@octokit/core": "^7.0.4",
     "@octokit/plugin-request-log": "^6.0.0",
     "@octokit/plugin-retry": "^8.0.1",
